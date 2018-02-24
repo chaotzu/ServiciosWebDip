@@ -1,13 +1,26 @@
 package org.netzd.servicioswebdip.webservices;
 
+import android.os.Build;
 import android.view.ViewDebug;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.netzd.servicioswebdip.Video;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Alumno12 on 24/02/18.
@@ -17,6 +30,51 @@ public class JSONParser {
     private HttpURLConnection connection = null;
     public JSONParser(){
 
+    }
+
+    private String getJSONString(String petitionUri, Petition petition){
+        InputStream inputStream = null;
+        String jsonResult = null;
+        try{
+            connection=createConnection(petitionUri, petition);
+            if(petition.getEntity()!=Entity.POST){
+                inputStream=new BufferedInputStream(connection.getInputStream());
+                jsonResult=convertInputStreamToString(inputStream);
+            }else{
+                if(Build.VERSION.SDK_INT<Build.VERSION_CODES.LOLLIPOP){
+                    inputStream = new BufferedInputStream(connection.getInputStream());
+                    jsonResult=convertInputStreamToStringPost(inputStream);
+                }else{
+                    jsonResult=convertInputStreamToString(inputStream);
+                }
+            }
+        }catch (Exception e){
+            return  null;
+        }
+        return jsonResult;
+    }
+
+    //Parser de json /*Ejemplo usamos OMDb API  http://www.omdbapi.com/?s=superman&apikey=2b28d307&r=json
+    public List<Video> getVideos(String uri, Petition petition){
+        List<Video> videos = new ArrayList<>();
+        try{
+            JSONObject jsonObject = new JSONObject(getJSONString(uri,petition));
+            if(jsonObject != null){
+                //Leemos el arreglo de json
+                //JSONArray videosJsonArray = new jsonObject.getJSONArray("Search");
+                JSONArray videosJsonArray=jsonObject.getJSONArray("Search");
+                if(videosJsonArray != null && videosJsonArray.length() > 0){
+                    for (int indice = 0; indice<videosJsonArray.length(); indice++) {
+                        JSONObject videoJsonObject = videosJsonArray.getJSONObject(indice);
+                        videos.add(new Video(videoJsonObject.getString("imdbID"), videoJsonObject.getString("Title"), videoJsonObject.getString("Year"),videoJsonObject.getString("Type"), videoJsonObject.getString("Poster")));
+                    }
+
+                }
+            }
+        }catch (JSONException e){
+
+        }
+        return videos;
     }
 
     private HttpURLConnection createConnection(String petitionUri, Petition petition){
@@ -96,4 +154,43 @@ public class JSONParser {
         }
         return httpURLConnection;
     }
+
+    //Estos dos metodos reciben la respuesta en bytes y lo convierten a un objeto string
+    public static String convertInputStreamToString(InputStream inputStream) {
+        String line = new String();
+        String result = new String();
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+
+            while ((line = bufferedReader.readLine()) != null)
+                result += line;
+
+            inputStream.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+
+    }
+
+    public static String convertInputStreamToStringPost(InputStream inputStream) {
+        String line = null;
+        StringBuffer output = new StringBuffer("");
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+
+            line = "";
+            while ((line = bufferedReader.readLine()) != null)
+                output.append(line);
+
+            inputStream.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return output.toString();
+
+    }
+
 }
