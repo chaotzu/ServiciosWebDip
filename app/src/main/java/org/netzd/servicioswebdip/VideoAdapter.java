@@ -1,5 +1,7 @@
 package org.netzd.servicioswebdip;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -11,8 +13,14 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.netzd.servicioswebdip.webservices.Entity;
+import org.netzd.servicioswebdip.webservices.JSONParser;
+import org.netzd.servicioswebdip.webservices.Petition;
 import org.w3c.dom.Text;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,6 +28,87 @@ import java.util.List;
  */
 
 
+
+public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHolder> {
+
+    private List<Video> videos=null;
+
+    public VideoAdapter(List<Video> contacts) {
+        if(contacts==null){
+            this.videos=new ArrayList<>();
+        }else {
+            this.videos = contacts;
+        }
+    }
+
+
+
+
+    @Override
+    public VideoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        View item= LayoutInflater.from(parent.getContext()).inflate(R.layout.item_video,parent,false);
+        return new VideoViewHolder(item);
+    }
+
+    @Override
+    public void onBindViewHolder(VideoViewHolder holder, int position) {
+
+        //holder.thumbnailImageView.setImageResource(videos.get(position).getPoster());
+        holder.titleTextView.setText(videos.get(position).getTitle());
+        holder.typeTextView.setText(videos.get(position).getType());
+
+        BitmapFactory.Options bmOptions;
+        bmOptions = new BitmapFactory.Options();
+        bmOptions.inSampleSize = 1;
+
+        Bitmap bm = LoadImage(videos.get(position).getPoster(), bmOptions);
+        holder.thumbnailImageView.setImageBitmap(bm);
+
+
+    }
+
+    @Override
+    public int getItemCount() {
+        return videos.size();
+    }
+
+    static class VideoViewHolder extends RecyclerView.ViewHolder{
+
+        protected ImageView thumbnailImageView=null;
+        protected TextView titleTextView=null;
+        protected TextView typeTextView=null;
+
+        public VideoViewHolder(View itemView) {
+            super(itemView);
+            thumbnailImageView=(ImageView) itemView.findViewById(R.id.thumbnailImageView);
+            titleTextView=(TextView) itemView.findViewById(R.id.titleTextView);
+            typeTextView=(TextView) itemView.findViewById(R.id.typeTextView);
+        }
+    }
+
+
+    private Bitmap LoadImage(String URL, BitmapFactory.Options options)
+    {
+        Bitmap bitmap = null;
+        InputStream in = null;
+        try {
+            JSONParser rss = new JSONParser();
+            //leo la cadena de bytes de la conexion
+            in = rss.createConnection(URL,new Petition(Entity.NONE)).getInputStream();
+            //convierte en archivo bitmap
+            bitmap = BitmapFactory.decodeStream(in, null, options);
+            in.close();
+        } catch (IOException e1) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+}
+
+
+/*
 public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter
         .VideoViewHolder>{
 
@@ -39,11 +128,35 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter
 
     @Override
     public void onBindViewHolder(VideoViewHolder holder, int position) {
-        holder.tituloTextView.setText(videos.get(position).getTitle());
-        holder.tipoTextView.setText(videos.get(position).getType());
-        holder.imagen.setText(videos.get(position).getPoster());
+        holder.titleTextView.setText(videos.get(position).getTitle());
+        holder.typeTextView.setText(videos.get(position).getType());
+        BitmapFactory.Options bmOptions;
+        bmOptions = new BitmapFactory.Options();
+        bmOptions.inSampleSize = 1;
+        Bitmap bm = LoadImage(videos.get(position).getPoster(),bmOptions);
+        holder.thumbnailImageView.setImageBitmap(bm);
+
+        // holder.imagen.setText(videos.get(position).getPoster());
+
+
         //holder.imagen.setImageResource(videos.get(position).getPoster());
 
+    }
+
+    private Bitmap LoadImage(String URL, BitmapFactory.Options options)
+    {
+        Bitmap bitmap = null;
+        InputStream in = null;
+        try {
+            JSONParser rss = new JSONParser();
+            in = rss.createConnection(URL,new Petition(Entity.NONE)).getInputStream();
+            bitmap = BitmapFactory.decodeStream(in, null, options);
+            in.close();
+        } catch (IOException e1) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bitmap;
     }
 
     @Override
@@ -54,9 +167,10 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter
 
     static class VideoViewHolder extends RecyclerView.ViewHolder{
 
-        protected TextView tituloTextView=null;
-        protected TextView tipoTextView=null;
-        protected TextView imagen=null;
+
+        protected TextView titleTextView=null;
+        protected TextView typeTextView=null;
+        protected ImageView thumbnailImageView=null;
         //protected ImageView imagen=null;
 
 
@@ -71,7 +185,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter
                 @Override
                 public void onClick(View v) {
                    /* if(cancion!=null && onClickCancionListener!=null)
-                        onClickCancionListener.onClickCancion(cancion);*/
+                        onClickCancionListener.onClickCancion(cancion);*//*
                 }
             });
         }
@@ -82,7 +196,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter
 
         public void setOnClickCancionListener(OnClickCancionListener onClickCancionListener) {
             this.onClickCancionListener = onClickCancionListener;
-        }*/
+        }*//*
     }
 }
 

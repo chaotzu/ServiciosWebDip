@@ -77,7 +77,7 @@ public class JSONParser {
         return videos;
     }
 
-    private HttpURLConnection createConnection(String petitionUri, Petition petition){
+    public HttpURLConnection createConnection(String petitionUri, Petition petition){
         HttpURLConnection httpURLConnection = null;
         DataOutputStream dataOutputStream = null;
 
